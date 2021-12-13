@@ -39,7 +39,8 @@ def all_read_counts(wildcards):
             in units.index]
 
 rule all:
-    input: all_read_counts
+    input:
+        "results/plots/read_counts.pdf"
 
 
 rule download_guides:
@@ -99,3 +100,11 @@ rule count_reads:
         "logs/read_counts/{sample_name}_{unit_name}.log"
     script:
         "scripts/read_counts_from_bam.py"
+
+rule plot_counts:
+    input:
+        all_read_counts
+    output:
+        "results/plots/read_counts.pdf"
+    script:
+        "scripts/plot_guide_counts.py"
