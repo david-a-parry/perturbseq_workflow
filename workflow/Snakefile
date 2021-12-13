@@ -33,9 +33,13 @@ def all_alignments(wildcards):
     return ["alignments/{}-{}.bam".format(sample, unit) for (sample, unit) in
             units.index]
 
+
+def all_read_counts(wildcards):
+    return ["results/{}-{}_counts.csv".format(sample, unit) for (sample, unit)
+            in units.index]
+
 rule all:
-    # input: all_alignments
-    input: "results/cycle_counts.csv"
+    input: all_read_counts
 
 
 rule download_guides:
@@ -86,8 +90,12 @@ rule bowtie_map:
 
 rule count_reads:
     input:
-        all_alignments
+        "alignments/{sample_name}-{unit_name}.bam",
+        config["guides"]["fasta"]
     output:
-        "results/cycle_counts.csv"
-    notebook:
-        "notebooks/fastq2read_counts.py.ipynb"
+        read_counts = "results/{sample_name}-{unit_name}_counts.csv",
+        map_counts = "results/{sample_name}-{unit_name}_mapped.csv"
+    log:
+        "logs/read_counts/{sample_name}_{unit_name}.log"
+    script:
+        "scripts/read_counts_from_bam.py"
