@@ -56,7 +56,7 @@ rule download_guides:
     log:
         "logs/download_guides.log"
     run:
-        shell("mv {input} {local_guides_xlsx}")
+        shell("mv {input} {local_guides_xlsx} 2> {log}")
 
 rule build_reference:
     input:
@@ -74,16 +74,26 @@ rule index_reference:
     params:
         prefix = config["guides"]["bt_idx"],
     output:
-        ebwt = config["guides"]["bt_idx"] + '.1.ebwt' 
+        ebwt1 = config["guides"]["bt_idx"] + '.1.ebwt',
+        ebwt2 = config["guides"]["bt_idx"] + '.2.ebwt',
+        ebwt3 = config["guides"]["bt_idx"] + '.3.ebwt',
+        ebwt4 = config["guides"]["bt_idx"] + '.4.ebwt',
+        ebwtrev1 = config["guides"]["bt_idx"] + '.rev.1.ebwt',
+        ebwtrev2 = config["guides"]["bt_idx"] + '.rev.2.ebwt'
     log:
         "logs/index_reference.log"
     shell:
-        "bowtie-build --threads {threads} -f {input} {params.prefix}"
+        "bowtie-build --threads {threads} -f {input} {params.prefix} 2> {log}"
 
 rule bowtie_map:
     input:
         fq = get_fastq,
-        ebwt = config["guides"]["bt_idx"] + '.1.ebwt'
+        ebwt1 = config["guides"]["bt_idx"] + '.1.ebwt',
+        ebwt2 = config["guides"]["bt_idx"] + '.2.ebwt',
+        ebwt3 = config["guides"]["bt_idx"] + '.3.ebwt',
+        ebwt4 = config["guides"]["bt_idx"] + '.4.ebwt',
+        ebwtrev1 = config["guides"]["bt_idx"] + '.rev.1.ebwt',
+        ebwtrev2 = config["guides"]["bt_idx"] + '.rev.2.ebwt'
     params:
         ref_idx = config["guides"]["bt_idx"]
     output:
@@ -91,8 +101,10 @@ rule bowtie_map:
     log:
         "logs/bowtie_map/{sample_name}_{unit_name}.log"
     shell:
-        "bowtie -m 1 -v 2 -p {threads} {params.ref_idx} {input.fq} -S | "
-        "samtools sort -O BAM -T tmp/{wildcards.sample_name}_{wildcards.unit_name} - > {output}"
+        "(bowtie -m 1 -v 2 -p {threads} {params.ref_idx} {input.fq} -S | "
+        "samtools sort -O BAM "
+        "-T tmp/{wildcards.sample_name}_{wildcards.unit_name} - )"
+        "> {output} 2> {log}"
 
 rule count_reads:
     input:
