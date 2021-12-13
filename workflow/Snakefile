@@ -1,0 +1,72 @@
+import pandas as pd
+from snakemake.utils import validate
+from snakemake.remote.HTTP import RemoteProvider as HTTPRemoteProvider
+HTTP = HTTPRemoteProvider()
+
+configfile: "config/config.yaml"
+print(config)
+validate(config, schema="schemas/config.schema.yaml")
+
+samples = (
+    pd.read_csv(config["samples"], sep="\t", dtype={"sample_name": str})
+    .set_index("sample_name", drop=False)
+    .sort_index()
+)
+validate(samples, schema="schemas/samples.schema.yaml")
+
+units = (
+    pd.read_csv(config["units"], sep="\t", dtype={"sample_name": str, "unit_name": str})
+    .set_index(["sample_name", "unit_name"], drop=False)
+    .sort_index()
+)
+validate(units, schema="schemas/units.schema.yaml")
+
+ref_dir = os.path.dirname(config["guides"]["fasta"])
+local_guides_xlsx = os.path.join(ref_dir, os.path.basename(config["guides"]["remote_xlsx"]))
+
+def get_fastq(wildcards):
+    """Get fastq files of given sample-unit."""
+    return units.loc[(wildcards.sample_name, wildcards.unit_name), ["fq1"]].dropna()
+
+
+def all_alignments(wildcards):
+    return ["alignments/{}-{}.bam".format(sample, unit) for (sample, unit) in
+            units.index]
+
+rule all:
+    input: all_alignments
+
+
+rule download_guides:
+    input:
+        HTTP.remote(config["guides"]["remote_xlsx"], keep_local=True)
+    output:
+        local_guides_xlsx
+    run:
+        shell("mv {input} {local_guides_xlsx}")
+
+rule build_reference:
+    input:
+        local_guides_xlsx
+    output:
+        config["guides"]["fasta"]
+    script:
+        "workflow/scripts/ref_from_xlsx.py"
+
+rule index_reference:
+    input:
+        config["guides"]["fasta"]
+    output:
+        config["guides"]["bt_idx"] 
+    shell:
+        "bowtie-build --threads {threads} -f {input} {output}"
+
+rule bowtie_map:
+    input:
+        get_fastq,
+        config["guides"]["bt_idx"]
+    output:
+        "alignments/{sample_name}-{unit_name}.bam"
+    shell:
+        "bowtie -m 1 -v 2 -p {threads} {input} -S | "
+        "samtools sort -O BAM -T tmp/{wildcards.sample_name}_{wildcards.unit_name} - > {output}"

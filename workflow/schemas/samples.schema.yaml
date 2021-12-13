@@ -1,0 +1,17 @@
+$schema: "http://json-schema.org/draft-06/schema#"
+description: an entry in the sample sheet
+properties:
+  sample_name:
+    type: string
+    description: sample name/identifier
+  timepoint:
+    type: integer
+    description: timepoint of sample - e.g. 0 for starting timepoint, 1 for next timepoint
+  genotype:
+    type: string
+    description: genotype/treatment status of sample
+
+required:
+  - sample_name
+  - timepoint
+  - genotype

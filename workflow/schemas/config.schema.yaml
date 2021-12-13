@@ -1,0 +1,30 @@
+$schema: "http://json-schema.org/draft-06/schema#"
+
+description: snakemake configuration file
+
+type: object
+
+properties:
+  samples:
+    type: string
+  units:
+    type: string
+
+  guides:
+    type: object
+    properties:
+      remote_xlsx:
+        type: string
+      fasta:
+        type: string
+      bt_idx:
+        type: string
+    required:
+      - remote_xlsx
+      - fasta
+      - bt_idx
+
+required:
+  - samples
+  - units
+  - guides

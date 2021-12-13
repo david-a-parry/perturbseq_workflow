@@ -1,0 +1,8 @@
+samples: config/samples.tsv
+
+units: config/units.tsv
+
+guides:
+  remote_xlsx: media.addgene.org/cms/filer_public/71/a8/71a81179-7a62-4d75-9b53-236e6f6b7d4d/tkov3_guide_sequence.xlsx
+  fasta: data/tkov3_guides.fa
+  bt_idx: data/bowtie_index/tkov3_guides
