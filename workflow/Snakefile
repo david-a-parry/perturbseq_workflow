@@ -34,7 +34,8 @@ def all_alignments(wildcards):
             units.index]
 
 rule all:
-    input: all_alignments
+    # input: all_alignments
+    input: "results/cycle_counts.csv"
 
 
 rule download_guides:
@@ -42,6 +43,8 @@ rule download_guides:
         HTTP.remote(config["guides"]["remote_xlsx"], keep_local=True)
     output:
         local_guides_xlsx
+    log:
+        "logs/download_guides.log"
     run:
         shell("mv {input} {local_guides_xlsx}")
 
@@ -50,23 +53,41 @@ rule build_reference:
         local_guides_xlsx
     output:
         config["guides"]["fasta"]
+    log:
+        "logs/build_reference.log"
     script:
-        "workflow/scripts/ref_from_xlsx.py"
+        "scripts/ref_from_xlsx.py"
 
 rule index_reference:
     input:
         config["guides"]["fasta"]
+    params:
+        prefix = config["guides"]["bt_idx"],
     output:
-        config["guides"]["bt_idx"] 
+        ebwt = config["guides"]["bt_idx"] + '.1.ebwt' 
+    log:
+        "logs/index_reference.log"
     shell:
-        "bowtie-build --threads {threads} -f {input} {output}"
+        "bowtie-build --threads {threads} -f {input} {params.prefix}"
 
 rule bowtie_map:
     input:
-        get_fastq,
-        config["guides"]["bt_idx"]
+        fq = get_fastq,
+        ebwt = config["guides"]["bt_idx"] + '.1.ebwt'
+    params:
+        ref_idx = config["guides"]["bt_idx"]
     output:
         "alignments/{sample_name}-{unit_name}.bam"
+    log:
+        "logs/bowtie_map/{sample_name}_{unit_name}.log"
     shell:
-        "bowtie -m 1 -v 2 -p {threads} {input} -S | "
+        "bowtie -m 1 -v 2 -p {threads} {params.ref_idx} {input.fq} -S | "
         "samtools sort -O BAM -T tmp/{wildcards.sample_name}_{wildcards.unit_name} - > {output}"
+
+rule count_reads:
+    input:
+        all_alignments
+    output:
+        "results/cycle_counts.csv"
+    notebook:
+        "notebooks/fastq2read_counts.py.ipynb"
