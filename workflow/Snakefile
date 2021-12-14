@@ -33,9 +33,24 @@ bt_idx = os.path.join("resources",
                       "bowtie_index",
                       os.path.splitext(os.path.basename(guides_fasta))[0])
 
-def get_fastq(wildcards):
+def get_original_fastq(wildcards):
     """Get fastq files of given sample-unit."""
     return units.loc[(wildcards.sample_name, wildcards.unit_name), ["fq1"]].dropna()
+
+
+def get_trimmed_fastq(wildcards):
+    """Get fastq files of given sample-unit."""
+    fq = get_original_fastq(wildcards)
+    return os.path.join("trimmed_fastq",
+                        "{}-{}-trimmed.fastq.gz".format(wildcards.sample_name,
+                                                        wildcards.unit_name))
+
+
+def get_fastq(wildcards):
+    """Get fastq files of given sample-unit."""
+    if config.get('trim', 0) == 0 and config.get('max_length', 20) >= 20:
+        return get_original_fastq(wildcards)
+    return get_trimmed_fastq(wildcards)
 
 
 def all_alignments(wildcards):
@@ -95,6 +110,18 @@ rule index_reference:
     shell:
         "bowtie-build --threads {threads} -f {input} {params.prefix} 2>&1 >{log}"
 
+rule trim_fastq:
+    input:
+        get_original_fastq
+    output:
+        "trimmed_fastq/{sample_name}-{unit_name}-trimmed.fastq.gz"
+    log:
+        "logs/trim_fq/{sample_name}_{unit_name}.log"
+    conda:
+        "envs/pandas.yaml"
+    script:
+        "scripts/trim_fq.py"
+
 rule bowtie_map:
     input:
         fq = get_fastq,
@@ -112,6 +139,8 @@ rule bowtie_map:
         "logs/bowtie_map/{sample_name}_{unit_name}.log"
     conda:
         "envs/bowtie.yaml"
+    resources:
+        tmpdir="tmp"
     shell:
         "(bowtie -m 1 -v 2 -p {threads} {params.ref_idx} {input.fq} -S | "
         "samtools sort -O BAM "

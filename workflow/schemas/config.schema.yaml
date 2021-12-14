@@ -13,6 +13,12 @@ properties:
   guides:
     type: string 
 
+  trim:
+    type: integer
+
+  max_length:
+    type: integer
+
 required:
   - samples
   - units
