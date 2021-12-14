@@ -6,14 +6,11 @@ import pandas as pd
 from collections import defaultdict
 
 
-logger = logging.getLogger("Read Counts")
-logger.setLevel(logging.INFO)
-formatter = logging.Formatter(
-    '[%(asctime)s] %(name)s - %(levelname)s - %(message)s')
-ch = logging.StreamHandler()
-ch.setLevel(logger.level)
-ch.setFormatter(formatter)
-logger.addHandler(ch)
+logging.basicConfig(filename=snakemake.log[0],
+                    level=logging.INFO,
+                    format='%(asctime)s %(message)s',
+                    datefmt='%Y-%m-%d %H:%M:%S',
+                    )
 
 
 def target_from_ref(seqname):

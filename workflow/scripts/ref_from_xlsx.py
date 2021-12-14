@@ -1,5 +1,6 @@
 import pandas as pd
 
+
 df = pd.read_excel(snakemake.input[0])
 df['reference_name'] = df.GUIDE_ID.apply(
     lambda x: x.replace(':', '_').replace('-', '_', 1).replace(

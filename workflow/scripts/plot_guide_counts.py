@@ -16,5 +16,5 @@ count_df = df.groupby(
     ['sample_name', 'Target', 'Gene'])['Coverage'].sum().to_frame()
 count_df.reset_index(inplace=True)
 g = sns.FacetGrid(count_df, row='sample_name')
-g.map(sns.distplot, 'Coverage')
+g.map_dataframe(sns.histplot, x='Coverage')
 plt.savefig("results/plots/read_counts.pdf")

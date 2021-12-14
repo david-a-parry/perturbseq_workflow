@@ -23,11 +23,14 @@ units = (
 )
 validate(units, schema="schemas/units.schema.yaml")
 
-ref_dir = os.path.dirname(config["guides"]["fasta"])
 local_guides_xlsx = os.path.join(
-    ref_dir,
-    os.path.basename(config["guides"]["remote_xlsx"]))
-
+    "resources",
+    os.path.basename(config["guides"]))
+fa_prfx, _ = os.path.splitext(os.path.basename(config["guides"]))
+guides_fasta = os.path.join("resources", fa_prfx + '.fa')
+bt_idx = os.path.join("resources",
+                         "bowtie_index",
+                         os.path.splitext(guides_fasta)[0])
 
 def get_fastq(wildcards):
     """Get fastq files of given sample-unit."""
@@ -40,7 +43,7 @@ def all_alignments(wildcards):
 
 
 def all_read_counts(wildcards):
-    return ["results/{}-{}_counts.csv".format(sample, unit) for (sample, unit)
+    return ["results/read_counts/{}-{}_counts.csv".format(sample, unit) for (sample, unit)
             in units.index]
 
 
@@ -50,7 +53,7 @@ rule all:
 
 rule download_guides:
     input:
-        HTTP.remote(config["guides"]["remote_xlsx"], keep_local=True)
+        HTTP.remote(config["guides"], keep_local=True)
     output:
         local_guides_xlsx
     log:
@@ -62,7 +65,9 @@ rule build_reference:
     input:
         local_guides_xlsx
     output:
-        config["guides"]["fasta"]
+        guides_fasta
+    conda:
+        "envs/pandas.yaml"
     log:
         "logs/build_reference.log"
     script:
@@ -70,36 +75,40 @@ rule build_reference:
 
 rule index_reference:
     input:
-        config["guides"]["fasta"]
+        guides_fasta
     params:
-        prefix = config["guides"]["bt_idx"],
+        prefix = bt_idx,
     output:
-        ebwt1 = config["guides"]["bt_idx"] + '.1.ebwt',
-        ebwt2 = config["guides"]["bt_idx"] + '.2.ebwt',
-        ebwt3 = config["guides"]["bt_idx"] + '.3.ebwt',
-        ebwt4 = config["guides"]["bt_idx"] + '.4.ebwt',
-        ebwtrev1 = config["guides"]["bt_idx"] + '.rev.1.ebwt',
-        ebwtrev2 = config["guides"]["bt_idx"] + '.rev.2.ebwt'
+        ebwt1 = bt_idx + '.1.ebwt',
+        ebwt2 = bt_idx + '.2.ebwt',
+        ebwt3 = bt_idx + '.3.ebwt',
+        ebwt4 = bt_idx + '.4.ebwt',
+        ebwtrev1 = bt_idx + '.rev.1.ebwt',
+        ebwtrev2 = bt_idx + '.rev.2.ebwt'
     log:
         "logs/index_reference.log"
+    conda:
+        "envs/bowtie.yaml"
     shell:
         "bowtie-build --threads {threads} -f {input} {params.prefix} 2> {log}"
 
 rule bowtie_map:
     input:
         fq = get_fastq,
-        ebwt1 = config["guides"]["bt_idx"] + '.1.ebwt',
-        ebwt2 = config["guides"]["bt_idx"] + '.2.ebwt',
-        ebwt3 = config["guides"]["bt_idx"] + '.3.ebwt',
-        ebwt4 = config["guides"]["bt_idx"] + '.4.ebwt',
-        ebwtrev1 = config["guides"]["bt_idx"] + '.rev.1.ebwt',
-        ebwtrev2 = config["guides"]["bt_idx"] + '.rev.2.ebwt'
+        ebwt1 = bt_idx + '.1.ebwt',
+        ebwt2 = bt_idx + '.2.ebwt',
+        ebwt3 = bt_idx + '.3.ebwt',
+        ebwt4 = bt_idx + '.4.ebwt',
+        ebwtrev1 = bt_idx + '.rev.1.ebwt',
+        ebwtrev2 = bt_idx + '.rev.2.ebwt'
     params:
-        ref_idx = config["guides"]["bt_idx"]
+        ref_idx = bt_idx
     output:
         "alignments/{sample_name}-{unit_name}.bam"
     log:
         "logs/bowtie_map/{sample_name}_{unit_name}.log"
+    conda:
+        "envs/bowtie.yaml"
     shell:
         "(bowtie -m 1 -v 2 -p {threads} {params.ref_idx} {input.fq} -S | "
         "samtools sort -O BAM "
@@ -109,12 +118,14 @@ rule bowtie_map:
 rule count_reads:
     input:
         "alignments/{sample_name}-{unit_name}.bam",
-        config["guides"]["fasta"]
+        guides_fasta
     output:
-        read_counts = "results/{sample_name}-{unit_name}_counts.csv",
-        map_counts = "results/{sample_name}-{unit_name}_mapped.csv"
+        read_counts = "results/read_counts/{sample_name}-{unit_name}_counts.csv",
+        map_counts = "results/read_counts/{sample_name}-{unit_name}_mapped.csv"
     log:
         "logs/read_counts/{sample_name}_{unit_name}.log"
+    conda:
+        "envs/pandas.yaml"
     script:
         "scripts/read_counts_from_bam.py"
 
@@ -123,5 +134,7 @@ rule plot_counts:
         all_read_counts
     output:
         "results/plots/read_counts.pdf"
+    conda:
+        "envs/pandas.yaml"
     script:
         "scripts/plot_guide_counts.py"
