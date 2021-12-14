@@ -29,8 +29,8 @@ local_guides_xlsx = os.path.join(
 fa_prfx, _ = os.path.splitext(os.path.basename(config["guides"]))
 guides_fasta = os.path.join("resources", fa_prfx + '.fa')
 bt_idx = os.path.join("resources",
-                         "bowtie_index",
-                         os.path.splitext(guides_fasta)[0])
+                      "bowtie_index",
+                      os.path.splitext(os.path.basename(guides_fasta))[0])
 
 def get_fastq(wildcards):
     """Get fastq files of given sample-unit."""
@@ -90,7 +90,7 @@ rule index_reference:
     conda:
         "envs/bowtie.yaml"
     shell:
-        "bowtie-build --threads {threads} -f {input} {params.prefix} 2> {log}"
+        "bowtie-build --threads {threads} -f {input} {params.prefix} 2>&1 >{log}"
 
 rule bowtie_map:
     input:
