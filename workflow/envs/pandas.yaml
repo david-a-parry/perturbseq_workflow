@@ -2,8 +2,8 @@ channels:
   - conda-forge
   - bioconda
 dependencies:
-  - pandas >=1.1
-  - seaborn
+  - pandas 
+  - seaborn >= 0.11
   - matplotlib
   - lxml
   - pysam
