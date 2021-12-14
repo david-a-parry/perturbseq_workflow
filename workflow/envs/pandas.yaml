@@ -3,7 +3,7 @@ channels:
   - bioconda
 dependencies:
   - pandas 
-  - seaborn >= 0.11
+  - seaborn >=0.11
   - matplotlib
   - lxml
   - pysam
