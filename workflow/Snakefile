@@ -94,7 +94,7 @@ bagel_ess_genes, bagel_neg_genes = get_bagel_ref_genes()
 
 rule all:
     input:
-        expand("results/bagel/{gt}-{time}.bf", gt=genotypes, time=timepoints)
+        expand("results/bagel/{gt}-{time}.pr", gt=genotypes, time=timepoints)
 
 rule download_guides:
     input:
@@ -226,7 +226,6 @@ rule download_bagel:
         shell("mv resources/bagel-*/* resources/bagel 2>> {log}")
         shell("rmdir resources/bagel-* 2>> {log}")
 
-
 rule run_bagel_bf:
     input:
         "results/fold_change.tsv"
@@ -243,3 +242,19 @@ rule run_bagel_bf:
     shell:
         "python resources/bagel/BAGEL.py bf -i {input} -o {output} "
         "-n {params.neg} -e {params.ess} -c {params.sample_cols}"
+
+rule run_bagel_pr:
+    input:
+        "results/bagel/{genotype}-{timepoint}.bf"
+    output:
+        "results/bagel/{genotype}-{timepoint}.pr"
+    log:
+        "logs/bagel-pr-{genotype}-{timepoint}.log"
+    conda:
+        "envs/stats.yaml"
+    params:
+        neg = bagel_neg_genes,
+        ess = bagel_ess_genes
+    shell:
+        "python resources/bagel/BAGEL.py pr -i {input} -o {output} "
+        "-n {params.neg} -e {params.ess}"
