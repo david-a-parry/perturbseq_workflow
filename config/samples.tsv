@@ -1,7 +1,7 @@
 sample_name	timepoint	genotype
-WT-T0_S1	0	WT
-WT-A-T18_S2	1	WT
-WT-B-T18_S3	1	WT
-Hom-T0_S4	0	Hom
-Hom-A-T21_S5	1	Hom
-Hom-B-T21_S6	1	Hom
+WT-T0	0	WT
+WT-A-T18	1	WT
+WT-B-T18	1	WT
+Hom-T0	0	Hom
+Hom-A-T21	1	Hom
+Hom-B-T21	1	Hom
