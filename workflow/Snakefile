@@ -94,7 +94,8 @@ bagel_ess_genes, bagel_neg_genes = get_bagel_ref_genes()
 
 rule all:
     input:
-        expand("results/bagel/{gt}-{time}.pr", gt=genotypes, time=timepoints)
+        "results/plots/bagel_pr_curve.pdf",
+        "results/plots/bagel_ess_neg_dist.pdf"
 
 rule download_guides:
     input:
@@ -258,3 +259,17 @@ rule run_bagel_pr:
     shell:
         "python resources/bagel/BAGEL.py pr -i {input} -o {output} "
         "-n {params.neg} -e {params.ess}"
+
+rule plot_bagel_results:
+    input:
+        expand("results/bagel/{gt}-{time}.pr", gt=genotypes, time=timepoints)
+    output:
+        "results/plots/bagel_pr_curve.pdf",
+        "results/plots/bagel_ess_neg_dist.pdf"
+    conda:
+        "envs/stats.yaml"
+    params:
+        neg = bagel_neg_genes,
+        ess = bagel_ess_genes
+    notebook:
+        "notebooks/plot_bagel_results.py.ipynb"
