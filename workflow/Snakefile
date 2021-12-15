@@ -67,7 +67,9 @@ rule all:
     input:
         "results/plots/lorenz_curves_t0.pdf",
         "results/plots/guide_counts_t0.pdf",
-        "results/plots/guide_counts_all.pdf"
+        "results/plots/guide_counts_all.pdf",
+        "results/norm_counts.tsv.gz",
+        "results/fold_change.tsv"
 
 rule download_guides:
     input:
@@ -178,8 +180,10 @@ rule plot_guide_counts:
     output:
         "results/plots/lorenz_curves_t0.pdf",
         "results/plots/guide_counts_t0.pdf",
-        "results/plots/guide_counts_all.pdf"
+        "results/plots/guide_counts_all.pdf",
+        "results/norm_counts.tsv.gz",
+        "results/fold_change.tsv"
     conda:
-        "envs/plotting.yaml"
+        "envs/stats.yaml"
     notebook:
         "notebooks/guide_plots.py.ipynb"
