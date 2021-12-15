@@ -2,12 +2,6 @@ import os
 import glob
 import logging
 import gzip
-import seaborn as sns
-import pandas as pd
-import numpy as np
-import matplotlib.pyplot as plt
-import matplotlib.ticker as mtick
-from collections import defaultdict, OrderedDict
 
 
 logging.basicConfig(filename=snakemake.log[0],
