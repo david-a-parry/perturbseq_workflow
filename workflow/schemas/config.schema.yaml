@@ -13,13 +13,29 @@ properties:
   guides:
     type: string 
 
+  control_genotype:
+    type: string
+
+  bagel_zip:
+    type: string 
+
   trim:
     type: integer
 
   max_length:
     type: integer
 
+  species:
+    type: string
+
+  bagel_ess_genes:
+    type: string
+
+  bagel_neg_genes:
+    type: string
+
 required:
   - samples
   - units
   - guides
+  - bagel_zip

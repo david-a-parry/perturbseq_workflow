@@ -24,6 +24,10 @@ units = (
 )
 validate(units, schema="schemas/units.schema.yaml")
 
+t0 = samples.timepoint.min()
+timepoints = list(samples[samples.timepoint != t0].timepoint.unique())
+genotypes = list(samples.genotype.unique())
+
 local_guides_xlsx = os.path.join(
     "resources",
     os.path.basename(config["guides"]))
@@ -32,6 +36,22 @@ guides_fasta = os.path.join("resources", fa_prfx + '.fa')
 bt_idx = os.path.join("resources",
                       "bowtie_index",
                       os.path.splitext(os.path.basename(guides_fasta))[0])
+
+def get_bagel_ref_genes():
+    ess = config.get("bagel_ess_genes")
+    neg = config.get("bagel_neg_genes")
+    if ess is None or neg is None:
+        species = config.get("species")
+        if species is None or species.lower() == 'human':
+            ess = ess if ess is not None else "resources/bagel/CEGv2.txt"
+            neg = neg if neg is not None else "resources/bagel/NEGv1.txt"
+        elif species.lower() == 'mouse':
+            ess = ess if ess is not None else "resources/bagel/CEG_mouse.txt"
+            neg = neg if neg is not None else "resources/bagel/NEG_mouse.txt"
+        else:
+            raise ValueError("Unsupported species: {}".format(species))
+    return ess, neg
+
 
 def get_original_fastq(wildcards):
     """Get fastq files of given sample-unit."""
@@ -62,14 +82,22 @@ def all_read_counts(wildcards):
     return ["results/read_counts/{}-{}_counts.csv".format(sample, unit) for (sample, unit)
             in units.index]
 
+def get_bagel_samples(wildcards):
+    return ','.join(
+        samples[(samples.genotype == wildcards.genotype) &
+                (samples.timepoint == int(wildcards.timepoint))
+                ].sample_name.unique())
+
+
+def get_bagel_bf_output(wildcards):
+    comp_
+
+bagel_ess_genes, bagel_neg_genes = get_bagel_ref_genes()
+
 
 rule all:
     input:
-        "results/plots/lorenz_curves_t0.pdf",
-        "results/plots/guide_counts_t0.pdf",
-        "results/plots/guide_counts_all.pdf",
-        "results/norm_counts.tsv.gz",
-        "results/fold_change.tsv"
+        expand("results/{gt}-{time}.bf", gt=genotypes, time=timepoints)
 
 rule download_guides:
     input:
@@ -187,3 +215,34 @@ rule plot_guide_counts:
         "envs/stats.yaml"
     notebook:
         "notebooks/guide_plots.py.ipynb"
+
+rule download_bagel:
+    input:
+        HTTP.remote(config["bagel_zip"])
+    output:
+        "resources/bagel/BAGEL.py"
+    log:
+        "logs/download_bagel.log"
+    run:
+        shell("unzip -o {config[bagel_zip]} -d resources 2> {log}")
+        shell("mkdir -p resources/bagel 2>> {log}")
+        shell("mv resources/bagel-*/* resources/bagel 2>> {log}")
+        shell("rmdir resources/bagel-* 2>> {log}")
+
+
+rule run_bagel_bf:
+    input:
+        "results/fold_change.tsv"
+    output:
+        "results/{genotype}-{timepoint}.bf"
+    log:
+        "logs/bagel-bf-{genotype}-{timepoint}.log"
+    conda:
+        "envs/stats.yaml"
+    params:
+        sample_cols = get_bagel_samples,
+        neg = bagel_neg_genes,
+        ess = bagel_ess_genes
+    shell:
+        "python resources/bagel/BAGEL.py bf -i {input} -o {output} "
+        "-n {params.neg} -e {params.ess} -c {params.sample_cols}"

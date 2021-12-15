@@ -4,6 +4,12 @@ units: config/units.tsv
 
 guides: media.addgene.org/cms/filer_public/1a/c4/1ac4f468-fc05-4c49-9d36-b61ec18ed759/mtko_library.xlsx
 
+bagel_zip: github.com/hart-lab/bagel/archive/refs/heads/master.zip
+
+control_genotype: WT
+
+species: mouse
+
 trim: 1
 
 max_length: 20
