@@ -1,0 +1,10 @@
+channels:
+  - conda-forge
+  - bioconda
+dependencies:
+  - pandas 
+  - seaborn >=0.11
+  - matplotlib
+  - numpy
+  - scikit-learn
+  - jupyter =1.0
