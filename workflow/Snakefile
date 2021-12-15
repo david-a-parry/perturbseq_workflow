@@ -89,15 +89,12 @@ def get_bagel_samples(wildcards):
                 ].sample_name.unique())
 
 
-def get_bagel_bf_output(wildcards):
-    comp_
-
 bagel_ess_genes, bagel_neg_genes = get_bagel_ref_genes()
 
 
 rule all:
     input:
-        expand("results/{gt}-{time}.bf", gt=genotypes, time=timepoints)
+        expand("results/bagel/{gt}-{time}.bf", gt=genotypes, time=timepoints)
 
 rule download_guides:
     input:
@@ -234,7 +231,7 @@ rule run_bagel_bf:
     input:
         "results/fold_change.tsv"
     output:
-        "results/{genotype}-{timepoint}.bf"
+        "results/bagel/{genotype}-{timepoint}.bf"
     log:
         "logs/bagel-bf-{genotype}-{timepoint}.log"
     conda:
