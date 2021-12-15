@@ -1,9 +1,5 @@
 import os
-import matplotlib
-import matplotlib.pyplot as plt
-import seaborn as sns
 import pandas as pd
-matplotlib.use("Agg")
 
 df = pd.DataFrame()
 for csv_input in snakemake.input:
@@ -17,6 +13,3 @@ count_df = df.groupby(
     ['sample_name', 'Target', 'Gene'])['Coverage'].sum().to_frame()
 count_df.reset_index(inplace=True)
 count_df.to_csv("results/read_counts_per_sample.csv.gz", index=False)
-g = sns.FacetGrid(count_df, row='sample_name')
-g.map_dataframe(sns.histplot, x='Coverage')
-plt.savefig("results/plots/read_counts.pdf")
