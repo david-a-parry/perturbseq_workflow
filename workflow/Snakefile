@@ -229,7 +229,8 @@ rule download_bagel:
 
 rule run_bagel_bf:
     input:
-        "results/fold_change.tsv"
+        "results/fold_change.tsv",
+        "resources/bagel/BAGEL.py"
     output:
         "results/bagel/{genotype}-{timepoint}.bf"
     log:
