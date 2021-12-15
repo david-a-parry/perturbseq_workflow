@@ -65,9 +65,9 @@ def all_read_counts(wildcards):
 
 rule all:
     input:
-        "results/read_counts_per_sample.csv.gz",
-        "results/read_counts_per_alignment.csv.gz",
-        "results/plots/read_counts.pdf"
+        "results/plots/lorenz_curves_t0.pdf",
+        "results/plots/guide_counts_t0.pdf",
+        "results/plots/guide_counts_all.pdf"
 
 rule download_guides:
     input:
@@ -161,14 +161,25 @@ rule count_reads:
     script:
         "scripts/read_counts_from_bam.py"
 
-rule plot_counts:
+rule combine_read_counts:
     input:
         all_read_counts
     output:
         "results/read_counts_per_sample.csv.gz",
-        "results/read_counts_per_alignment.csv.gz",
-        "results/plots/read_counts.pdf"
+        "results/read_counts_per_alignment.csv.gz"
     conda:
         "envs/pandas.yaml"
     script:
-        "scripts/plot_guide_counts.py"
+        "scripts/combine_read_counts.py"
+
+rule plot_guide_counts:
+    input:
+        "results/read_counts_per_sample.csv.gz",
+    output:
+        "results/plots/lorenz_curves_t0.pdf",
+        "results/plots/guide_counts_t0.pdf",
+        "results/plots/guide_counts_all.pdf"
+    conda:
+        "envs/stats.yaml"
+    notebook:
+        "notebooks/guide_plots.py.ipynb"
