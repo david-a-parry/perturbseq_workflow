@@ -3,3 +3,7 @@ samples: config/samples.tsv
 units: config/units.tsv
 
 guides: media.addgene.org/cms/filer_public/1a/c4/1ac4f468-fc05-4c49-9d36-b61ec18ed759/mtko_library.xlsx
+
+trim: 1
+
+max_length: 20
