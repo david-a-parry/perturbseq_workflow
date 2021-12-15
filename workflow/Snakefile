@@ -180,6 +180,6 @@ rule plot_guide_counts:
         "results/plots/guide_counts_t0.pdf",
         "results/plots/guide_counts_all.pdf"
     conda:
-        "envs/stats.yaml"
+        "envs/plotting.yaml"
     notebook:
         "notebooks/guide_plots.py.ipynb"
