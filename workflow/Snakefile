@@ -79,8 +79,9 @@ def all_alignments(wildcards):
 
 
 def all_read_counts(wildcards):
-    return ["results/read_counts/{}-{}_counts.csv".format(sample, unit) for (sample, unit)
-            in units.index]
+    return ["results/read_counts/per_bam/{}-{}_counts.csv".format(sample,
+                                                                  unit)
+            for (sample, unit) in units.index]
 
 
 def get_t0_sample(wildcards):
@@ -192,8 +193,8 @@ rule count_reads:
         "alignments/{sample_name}-{unit_name}.bam",
         guides_fasta
     output:
-        read_counts = "results/read_counts/{sample_name}-{unit_name}_counts.csv",
-        map_counts = "results/read_counts/{sample_name}-{unit_name}_mapped.csv"
+        read_counts = "results/read_counts/per_bam/{sample_name}-{unit_name}_counts.csv",
+        map_counts = "results/read_counts/per_bam/{sample_name}-{unit_name}_mapped.csv"
     log:
         "logs/read_counts/{sample_name}_{unit_name}.log"
     conda:
@@ -205,10 +206,10 @@ rule combine_read_counts:
     input:
         all_read_counts
     output:
-        "results/read_counts_per_sample.csv.gz",
-        "results/read_counts_per_alignment.csv.gz",
-        "results/all_read_counts.tsv",
-        expand("results/{genotype}_read_counts.tsv", genotype=genotypes)
+        "results/read_counts/read_counts_per_sample.csv.gz",
+        "results/read_counts/read_counts_per_alignment.csv.gz",
+        "results/read_counts/all_read_counts.tsv",
+        expand("results/read_counts/{genotype}_read_counts.tsv", genotype=genotypes)
     conda:
         "envs/pandas.yaml"
     script:
@@ -216,13 +217,13 @@ rule combine_read_counts:
 
 rule plot_guide_counts:
     input:
-        "results/read_counts_per_sample.csv.gz",
+        "results/read_counts/read_counts_per_sample.csv.gz",
     output:
         "results/plots/lorenz_curves_t0.pdf",
         "results/plots/guide_counts_t0.pdf",
         "results/plots/guide_counts_all.pdf",
-        "results/norm_counts.tsv.gz",
-        "results/fold_change.tsv"
+        "results/read_counts/norm_counts.tsv.gz",
+        "results/read_counts/fold_change.tsv"
     conda:
         "envs/stats.yaml"
     notebook:
@@ -243,7 +244,7 @@ rule download_bagel:
 
 rule run_bagel_fc:
     input:
-        "results/{genotype}_read_counts.tsv",
+        "results/read_counts/{genotype}_read_counts.tsv",
         "resources/bagel/BAGEL.py"
     output:
         "results/bagel/{genotype}.foldchange"
@@ -309,7 +310,7 @@ rule plot_bagel_results:
 rule prepare_jacks_maps:
     input:
         #all_read_counts
-        "results/norm_counts.tsv.gz"
+        "results/read_counts/norm_counts.tsv.gz"
     output:
         replicate_map = "results/jacks_analysis/replicate_map.txt",
         sgrna_map = "results/jacks_analysis/sgrna_map.txt"
@@ -320,7 +321,7 @@ rule prepare_jacks_maps:
 
 rule run_jacks:
     input:
-        read_counts = "results/all_read_counts.tsv",
+        read_counts = "results/read_counts/all_read_counts.tsv",
         replicate_map = "results/jacks_analysis/replicate_map.txt",
         sgrna_map = "results/jacks_analysis/sgrna_map.txt",
         bagel = "resources/bagel/BAGEL.py"  # run after bagel install in case we need NEG genes
@@ -336,3 +337,16 @@ rule run_jacks:
         "--ctrl_sample_hdr=Control --gene_hdr=Gene --sgrna_hdr Target "
         "--outprefix=results/jacks_analysis/jacks "
         "--ctrl_genes={params.neg}"
+
+rule regression_analysis:
+    input:
+        "results/jacks_analysis/jacks_gene_JACKS_results.txt"
+    output:
+        "results/regression_analyses/regression_hits.xlsx"
+    conda:
+        "envs/stats.yaml"
+    params:
+        neg = bagel_neg_genes,
+        ess = bagel_ess_genes
+    notebook:
+        "notebooks/regression_analysis.py.ipynb"
