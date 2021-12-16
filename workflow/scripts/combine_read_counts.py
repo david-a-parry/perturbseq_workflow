@@ -20,7 +20,7 @@ count_df['fraction_reads'] = count_df.apply(
 count_df.to_csv("results/read_counts_per_sample.csv.gz", index=False)
 pivot = df.pivot_table(index=["Target", 'Gene'],
                        columns='sample_name')['Coverage']
-
+pivot.to_csv(snakemake.output[2], sep='\t')
 # get sample information, T0 timepoint and test sample IDs
 sample_df = pd.read_csv(snakemake.config['samples'], sep='\t')
 # write out read counts for each genotype
