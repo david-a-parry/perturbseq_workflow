@@ -82,6 +82,17 @@ def all_read_counts(wildcards):
     return ["results/read_counts/{}-{}_counts.csv".format(sample, unit) for (sample, unit)
             in units.index]
 
+
+def get_t0_sample(wildcards):
+    smpls = samples[(samples.genotype == wildcards.genotype) &
+                    (samples.timepoint == t0)].sample_name.values
+    if len(smpls) != 1:
+        raise ValueError("Expected exactly 1 T0 sample for genotype " +
+                         "{}, got {}".format(wildcards.genotype,
+                                             ", ".join(smpls) if smpls else 0))
+    return smpls[0]
+
+
 def get_bagel_samples(wildcards):
     return ','.join(
         samples[(samples.genotype == wildcards.genotype) &
@@ -169,6 +180,7 @@ rule bowtie_map:
         "envs/bowtie.yaml"
     resources:
         tmpdir="tmp"
+    threads: 8
     shell:
         "(bowtie -m 1 -v 2 -p {threads} {params.ref_idx} {input.fq} -S | "
         "samtools sort -O BAM "
@@ -194,7 +206,8 @@ rule combine_read_counts:
         all_read_counts
     output:
         "results/read_counts_per_sample.csv.gz",
-        "results/read_counts_per_alignment.csv.gz"
+        "results/read_counts_per_alignment.csv.gz",
+        expand("results/{genotype}_read_counts.tsv", genotype=genotypes)
     conda:
         "envs/pandas.yaml"
     script:
@@ -227,10 +240,27 @@ rule download_bagel:
         shell("mv resources/bagel-*/* resources/bagel 2>> {log}")
         shell("rmdir resources/bagel-* 2>> {log}")
 
+rule run_bagel_fc:
+    input:
+        "results/{genotype}_read_counts.tsv",
+        "resources/bagel/BAGEL.py"
+    output:
+        "results/bagel/{genotype}.foldchange"
+    log:
+        "logs/bagel-fc-{genotype}.log"
+    conda:
+        "envs/stats.yaml"
+    params:
+        control_sample = get_t0_sample,
+        prefix = "results/bagel/{genotype}"
+    shell:
+        "python resources/bagel/BAGEL.py fc -i {input[0]} -o {params.prefix} "
+        "-c {params.control_sample}"
+
+
 rule run_bagel_bf:
     input:
-        "results/fold_change.tsv",
-        "resources/bagel/BAGEL.py"
+        "results/bagel/{genotype}.foldchange"
     output:
         "results/bagel/{genotype}-{timepoint}.bf"
     log:
@@ -242,7 +272,7 @@ rule run_bagel_bf:
         neg = bagel_neg_genes,
         ess = bagel_ess_genes
     shell:
-        "python resources/bagel/BAGEL.py bf -i {input} -o {output} "
+        "python resources/bagel/BAGEL.py bf -i {input[0]} -o {output} "
         "-n {params.neg} -e {params.ess} -c {params.sample_cols}"
 
 rule run_bagel_pr:
