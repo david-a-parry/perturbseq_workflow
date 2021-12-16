@@ -1,6 +1,7 @@
 import os
 import pandas as pd
 
+# read in per-bam read counts
 df = pd.DataFrame()
 for csv_input in snakemake.input:
     tmp_df = pd.read_csv(csv_input)
@@ -17,3 +18,13 @@ count_df['fraction_reads'] = count_df.apply(
     lambda x: x.Coverage/samp2mapped[x.sample_name],
     axis=1)
 count_df.to_csv("results/read_counts_per_sample.csv.gz", index=False)
+pivot = df.pivot_table(index=["Target", 'Gene'],
+                       columns='sample_name')['Coverage']
+
+# get sample information, T0 timepoint and test sample IDs
+sample_df = pd.read_csv(snakemake.config['samples'], sep='\t')
+# write out read counts for each genotype
+for gt in sample_df.genotype.unique():
+    sample_ids = list(sample_df[sample_df.genotype == gt].sample_name.values)
+    pivot[sample_ids].to_csv("results/{}_read_counts.tsv".format(gt),
+                             sep='\t')
