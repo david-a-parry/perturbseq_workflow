@@ -207,6 +207,7 @@ rule combine_read_counts:
     output:
         "results/read_counts_per_sample.csv.gz",
         "results/read_counts_per_alignment.csv.gz",
+        "results/all_read_counts.tsv",
         expand("results/{genotype}_read_counts.tsv", genotype=genotypes)
     conda:
         "envs/pandas.yaml"
@@ -304,3 +305,34 @@ rule plot_bagel_results:
         ess = bagel_ess_genes
     notebook:
         "notebooks/plot_bagel_results.py.ipynb"
+
+rule prepare_jacks_maps:
+    input:
+        #all_read_counts
+        "results/norm_counts.tsv.gz"
+    output:
+        replicate_map = "results/jacks_analysis/replicate_map.txt",
+        sgrna_map = "results/jacks_analysis/sgrna_map.txt"
+    conda:
+        "envs/pandas.yaml"
+    script:
+        "scripts/prepare_jacks_maps.py"
+
+rule run_jacks:
+    input:
+        read_counts = "results/all_read_counts.tsv",
+        replicate_map = "results/jacks_analysis/replicate_map.txt",
+        sgrna_map = "results/jacks_analysis/sgrna_map.txt",
+        bagel = "resources/bagel/BAGEL.py"  # run after bagel install in case we need NEG genes
+    output:
+        "results/jacks_analysis/jacks_gene_JACKS_results.txt"
+    conda:
+        "envs/jacks.yaml"
+    params:
+        neg = bagel_neg_genes
+    shell:
+        "JACKS.py {input.read_counts} "
+        "{input.replicate_map} {input.sgrna_map} "
+        "--ctrl_sample_hdr=Control --gene_hdr=Gene --sgrna_hdr Target "
+        "--outprefix=results/jacks_analysis/jacks "
+        "--ctrl_genes={params.neg}"
