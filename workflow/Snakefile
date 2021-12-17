@@ -106,8 +106,7 @@ bagel_ess_genes, bagel_neg_genes = get_bagel_ref_genes()
 
 rule all:
     input:
-        "results/plots/bagel_pr_curve.pdf",
-        "results/plots/bagel_ess_neg_dist.pdf"
+        "results/regression_analyses/regression_hits.xlsx"
 
 rule download_guides:
     input:
