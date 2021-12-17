@@ -106,7 +106,10 @@ bagel_ess_genes, bagel_neg_genes = get_bagel_ref_genes()
 
 rule all:
     input:
-        "results/regression_analyses/regression_hits.xlsx"
+        "results/plots/bagel_pr_curve.pdf",
+        "results/plots/bagel_ess_neg_dist.pdf",
+        "results/regression_analyses/regression_hits.xlsx",
+
 
 rule download_guides:
     input:
@@ -339,6 +342,7 @@ rule run_jacks:
 
 rule regression_analysis:
     input:
+        expand("results/bagel/{gt}-{time}.pr", gt=genotypes, time=timepoints),
         "results/jacks_analysis/jacks_gene_JACKS_results.txt"
     output:
         "results/regression_analyses/regression_hits.xlsx"
