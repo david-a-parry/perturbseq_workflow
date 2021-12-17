@@ -7,10 +7,17 @@ type: object
 properties:
   samples:
     type: string
+
   units:
     type: string
 
   guides:
+    type: string 
+
+  control_genotype:
+    type: string
+
+  bagel_zip:
     type: string 
 
   trim:
@@ -19,7 +26,18 @@ properties:
   max_length:
     type: integer
 
+  species:
+    type: string
+
+  bagel_ess_genes:
+    type: string
+
+  bagel_neg_genes:
+    type: string
+
 required:
   - samples
   - units
   - guides
+  - bagel_zip
+  - control_genotype

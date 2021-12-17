@@ -1,0 +1,15 @@
+channels:
+  - conda-forge
+  - bioconda
+dependencies:
+  - pandas
+  - numpy
+  - click
+  - scipy
+  - scikit-learn
+  - matplotlib
+  - seaborn >=0.11
+  - jupyter =1.0
+  - plotly
+  - mygene
+  - openpyxl
