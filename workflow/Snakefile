@@ -24,6 +24,12 @@ units = (
 )
 validate(units, schema="schemas/units.schema.yaml")
 
+all_output = ["results/plots/bagel_pr_curve.pdf",
+              "results/plots/bagel_ess_neg_dist.pdf",
+              "results/plots/jacks_pr_curve.pdf",
+              "results/plots/jacks_ess_neg_dist.pdf"]
+if config.get('control_genotype') is not None:
+    all_output.append("results/regression_analyses/regression_hits.xlsx")
 t0 = samples.timepoint.min()
 timepoints = list(samples[samples.timepoint != t0].timepoint.unique())
 genotypes = list(samples.genotype.unique())
@@ -106,9 +112,7 @@ bagel_ess_genes, bagel_neg_genes = get_bagel_ref_genes()
 
 rule all:
     input:
-        "results/plots/bagel_pr_curve.pdf",
-        "results/plots/bagel_ess_neg_dist.pdf",
-        "results/regression_analyses/regression_hits.xlsx",
+        all_output
 
 
 rule download_guides:
@@ -133,7 +137,7 @@ rule build_reference:
     script:
         "scripts/ref_from_xlsx.py"
 
-rule index_reference:
+rule bt_index_reference:
     input:
         guides_fasta
     params:
@@ -146,11 +150,23 @@ rule index_reference:
         ebwtrev1 = bt_idx + '.rev.1.ebwt',
         ebwtrev2 = bt_idx + '.rev.2.ebwt'
     log:
-        "logs/index_reference.log"
+        "logs/bt_index_reference.log"
     conda:
         "envs/bowtie.yaml"
     shell:
         "bowtie-build --threads {threads} -f {input} {params.prefix} 2>&1 >{log}"
+
+rule faidx_index_reference:
+    input:
+        guides_fasta
+    output:
+        guides_fasta + '.fai'
+    log:
+        "logs/faidx_index_reference.log"
+    conda:
+        "envs/bowtie.yaml"
+    shell:
+        "samtools faidx {input} 2>> {log}"
 
 rule trim_fastq:
     input:
@@ -193,7 +209,8 @@ rule bowtie_map:
 rule count_reads:
     input:
         "alignments/{sample_name}-{unit_name}.bam",
-        guides_fasta
+        guides_fasta,
+        guides_fasta + '.fai'
     output:
         read_counts = "results/read_counts/per_bam/{sample_name}-{unit_name}_counts.csv.gz",
         map_counts = "results/read_counts/per_bam/{sample_name}-{unit_name}_mapped.csv.gz"
@@ -277,7 +294,7 @@ rule run_bagel_bf:
         ess = bagel_ess_genes
     shell:
         "python resources/bagel/BAGEL.py bf -i {input[0]} -o {output} "
-        "-n {params.neg} -e {params.ess} -c {params.sample_cols}"
+        "-n {params.neg} -e {params.ess} -c {params.sample_cols} 2> {log}"
 
 rule run_bagel_pr:
     input:
@@ -293,7 +310,7 @@ rule run_bagel_pr:
         ess = bagel_ess_genes
     shell:
         "python resources/bagel/BAGEL.py pr -i {input} -o {output} "
-        "-n {params.neg} -e {params.ess}"
+        "-n {params.neg} -e {params.ess} 2> {log}"
 
 rule plot_bagel_results:
     input:
@@ -303,6 +320,8 @@ rule plot_bagel_results:
         "results/plots/bagel_ess_neg_dist.pdf"
     conda:
         "envs/stats.yaml"
+    log:
+        "logs/plot_bagel_results.log"
     params:
         neg = bagel_neg_genes,
         ess = bagel_ess_genes
@@ -316,6 +335,8 @@ rule prepare_jacks_maps:
     output:
         replicate_map = "results/jacks_analysis/replicate_map.txt",
         sgrna_map = "results/jacks_analysis/sgrna_map.txt"
+    log:
+        "logs/prepare_jacks_maps.log"
     conda:
         "envs/pandas.yaml"
     script:
@@ -331,6 +352,8 @@ rule run_jacks:
         "results/jacks_analysis/jacks_gene_JACKS_results.txt"
     conda:
         "envs/jacks.yaml"
+    log:
+        "logs/run_jacks.log"
     params:
         neg = bagel_neg_genes
     shell:
@@ -338,7 +361,23 @@ rule run_jacks:
         "{input.replicate_map} {input.sgrna_map} "
         "--ctrl_sample_hdr=Control --gene_hdr=Gene --sgrna_hdr Target "
         "--outprefix=results/jacks_analysis/jacks "
-        "--ctrl_genes={params.neg}"
+        "--ctrl_genes={params.neg} 2> {log}"
+
+rule plot_jacks_results:
+    input:
+        "results/jacks_analysis/jacks_gene_JACKS_results.txt",
+    output:
+        "results/plots/jacks_pr_curve.pdf",
+        "results/plots/jacks_ess_neg_dist.pdf"
+    conda:
+        "envs/stats.yaml"
+    log:
+        "logs/plot_jacks_results.log"
+    params:
+        neg = bagel_neg_genes,
+        ess = bagel_ess_genes
+    notebook:
+        "notebooks/plot_jacks_results.py.ipynb"
 
 rule regression_analysis:
     input:
