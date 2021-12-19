@@ -256,7 +256,7 @@ rule download_bagel:
     log:
         "logs/download_bagel.log"
     run:
-        shell("unzip -o {config[bagel_zip]} -d resources 2> {log}")
+        shell("unzip -o {config[bagel_zip]} -d resources 2>&1 >{log}")
         shell("mkdir -p resources/bagel 2>> {log}")
         shell("mv resources/bagel-*/* resources/bagel 2>> {log}")
         shell("rmdir resources/bagel-* 2>> {log}")
@@ -276,7 +276,7 @@ rule run_bagel_fc:
         prefix = "results/bagel/{genotype}"
     shell:
         "python resources/bagel/BAGEL.py fc -i {input[0]} -o {params.prefix} "
-        "-c {params.control_sample}"
+        "-c {params.control_sample} 2> {log}"
 
 
 rule run_bagel_bf:
@@ -294,7 +294,7 @@ rule run_bagel_bf:
         ess = bagel_ess_genes
     shell:
         "python resources/bagel/BAGEL.py bf -i {input[0]} -o {output} "
-        "-n {params.neg} -e {params.ess} -c {params.sample_cols} 2> {log}"
+        "-n {params.neg} -e {params.ess} -c {params.sample_cols} 2>&1 >{log}"
 
 rule run_bagel_pr:
     input:
@@ -330,7 +330,6 @@ rule plot_bagel_results:
 
 rule prepare_jacks_maps:
     input:
-        #all_read_counts
         "results/read_counts/norm_counts.tsv.gz"
     output:
         replicate_map = "results/jacks_analysis/replicate_map.txt",
