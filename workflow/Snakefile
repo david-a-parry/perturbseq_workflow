@@ -131,7 +131,7 @@ rule build_reference:
     output:
         guides_fasta
     conda:
-        "envs/pandas.yaml"
+        "envs/stats.yaml"
     log:
         "logs/build_reference.log"
     script:
@@ -176,7 +176,7 @@ rule trim_fastq:
     log:
         "logs/trim_fq/{sample_name}_{unit_name}.log"
     conda:
-        "envs/pandas.yaml"
+        "envs/stats.yaml"
     script:
         "scripts/trim_fq.py"
 
@@ -217,7 +217,7 @@ rule count_reads:
     log:
         "logs/read_counts/{sample_name}_{unit_name}.log"
     conda:
-        "envs/pandas.yaml"
+        "envs/stats.yaml"
     script:
         "scripts/read_counts_from_bam.py"
 
@@ -230,7 +230,7 @@ rule combine_read_counts:
         "results/read_counts/all_read_counts.tsv",
         expand("results/read_counts/{genotype}_read_counts.tsv", genotype=genotypes)
     conda:
-        "envs/pandas.yaml"
+        "envs/stats.yaml"
     script:
         "scripts/combine_read_counts.py"
 
@@ -337,7 +337,7 @@ rule prepare_jacks_maps:
     log:
         "logs/prepare_jacks_maps.log"
     conda:
-        "envs/pandas.yaml"
+        "envs/stats.yaml"
     script:
         "scripts/prepare_jacks_maps.py"
 

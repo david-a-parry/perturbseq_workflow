@@ -13,3 +13,4 @@ dependencies:
   - plotly
   - mygene
   - openpyxl
+  - pysam
