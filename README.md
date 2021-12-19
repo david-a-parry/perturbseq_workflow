@@ -18,7 +18,7 @@ be created once you run the workflow (see below).
 ### Your Data
 
 Edit the config files `config/config.yaml`, `config/samples.tsv` and
-`config/units.tsv` according to your needs. See schemas in workflow/schemas.
+`config/units.tsv` according to your needs. See schemas in `workflow/schemas`.
 
 #### config/config.yaml
 
@@ -88,7 +88,7 @@ contain a hyphen).
 Invoke snakemake with a number of cores that suits your hardware. The 
 `--use-conda` flag is required as cluster execution is not yet supported.
 
-`snakemake --use-conda --cores 4`
+    snakemake --use-conda --cores 4
 
 ## Author
 
