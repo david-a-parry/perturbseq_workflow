@@ -204,7 +204,7 @@ rule bowtie_map:
         "(bowtie -m 1 -v 2 -p {threads} {params.ref_idx} {input.fq} -S | "
         "samtools sort -O BAM "
         "-T tmp/{wildcards.sample_name}_{wildcards.unit_name} - )"
-        "> {output} 2> {log}"
+        "> {output} 2> {log} && samtools index {output} 2>> {log}"
 
 rule count_reads:
     input:
