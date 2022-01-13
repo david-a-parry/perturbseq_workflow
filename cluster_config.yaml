@@ -1,0 +1,4 @@
+__default__:
+  runtime: 120
+  mem_gb: 2
+  tmpdir: tmp
