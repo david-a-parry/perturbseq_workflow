@@ -103,7 +103,7 @@ To run on an SGE cluster, example configurations are provided in `cluster-qsub`
 and `cluster_config.yaml`. The workflow can be run on an SGE cluster with a
 command like the following:
 
-    $snakemake --profile cluster-qsub --cluster-config cluster_config.yaml --use-conda --cores 8
+    $ snakemake --profile cluster-qsub --cluster-config cluster_config.yaml --use-conda --cores 8
 
 ## Author
 
