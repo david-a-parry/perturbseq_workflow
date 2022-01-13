@@ -86,9 +86,16 @@ contain a hyphen).
 ## Running
 
 Invoke snakemake with a number of cores that suits your hardware. The 
-`--use-conda` flag is required as cluster execution is not yet supported.
+`--use-conda` flag will create all the necessary conda environments for the
+workflow.
 
-    snakemake --use-conda --cores 4
+    $ snakemake --use-conda --cores 4
+
+To run on an SGE cluster, example configurations are provided in `cluster-qsub`
+and `cluster_config.yaml`. The workflow can be run on an SGE cluster with a
+command like the following:
+
+    $snakemake --profile cluster-qsub --cluster-config cluster_config.yaml --use-conda --cores 8
 
 ## Author
 

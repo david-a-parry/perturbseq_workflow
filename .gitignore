@@ -9,3 +9,6 @@
 !.gitattributes
 !LICENSE
 !README.md
+!cluster_config.yaml
+!cluster-qsub
+!cluster-qsub/*
