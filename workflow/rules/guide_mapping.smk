@@ -41,6 +41,8 @@ rule build_reference:
         "../envs/stats.yaml"
     log:
         "logs/build_reference.log"
+    resources:
+        mem_gb=4
     script:
         "../scripts/ref_from_xlsx.py"
 
@@ -60,6 +62,8 @@ rule bt_index_reference:
         "logs/bt_index_reference.log"
     conda:
         "../envs/bowtie.yaml"
+    resources:
+        mem_gb=16
     shell:
         "bowtie-build --threads {threads} -f {input} {params.prefix} 2>&1 >{log}"
 
@@ -84,6 +88,8 @@ rule trim_fastq:
         "logs/trim_fq/{sample_name}_{unit_name}.log"
     conda:
         "../envs/stats.yaml"
+    resources:
+        mem_gb=4
     script:
         "../scripts/trim_fq.py"
 
@@ -107,6 +113,9 @@ rule bowtie_map:
     resources:
         tmpdir="tmp"
     threads: 8
+    resources:
+        mem_gb=16,
+        runtime_min=120
     shell:
         "(bowtie -m 1 -v 2 -p {threads} {params.ref_idx} {input.fq} -S | "
         "samtools sort -O BAM "

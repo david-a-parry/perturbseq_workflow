@@ -78,6 +78,8 @@ rule run_bagel_bf:
         sample_cols = get_bagel_samples,
         neg = bagel_neg_genes,
         ess = bagel_ess_genes
+    resources:
+        mem_gb=12
     shell:
         "python resources/bagel/BAGEL.py bf -i {input[0]} -o {output} "
         "-n {params.neg} -e {params.ess} -c {params.sample_cols} 2>&1 >{log}"
@@ -94,6 +96,8 @@ rule run_bagel_pr:
     params:
         neg = bagel_neg_genes,
         ess = bagel_ess_genes
+    resources:
+        mem_gb=12
     shell:
         "python resources/bagel/BAGEL.py pr -i {input} -o {output} "
         "-n {params.neg} -e {params.ess} 2> {log}"
@@ -108,6 +112,8 @@ rule plot_bagel_results:
         "../envs/stats.yaml"
     log:
         "logs/plot_bagel_results.log"
+    resources:
+        mem_gb=8
     params:
         neg = bagel_neg_genes,
         ess = bagel_ess_genes
@@ -141,6 +147,8 @@ rule run_jacks:
         "logs/run_jacks.log"
     params:
         neg = bagel_neg_genes
+    resources:
+        mem_gb=8
     shell:
         "JACKS.py {input.read_counts} "
         "{input.replicate_map} {input.sgrna_map} "
@@ -158,6 +166,8 @@ rule plot_jacks_results:
         "../envs/stats.yaml"
     log:
         "logs/plot_jacks_results.log"
+    resources:
+        mem_gb=8
     params:
         neg = bagel_neg_genes,
         ess = bagel_ess_genes
@@ -172,6 +182,8 @@ rule regression_analysis:
         "results/regression_analyses/regression_hits.xlsx"
     conda:
         "../envs/stats.yaml"
+    resources:
+        mem_gb=12
     params:
         neg = bagel_neg_genes,
         ess = bagel_ess_genes

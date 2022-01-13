@@ -16,6 +16,8 @@ rule count_reads:
         "logs/read_counts/{sample_name}_{unit_name}.log"
     conda:
         "../envs/stats.yaml"
+    resources:
+        mem_gb=8
     script:
         "../scripts/read_counts_from_bam.py"
 
@@ -29,6 +31,8 @@ rule combine_read_counts:
         expand("results/read_counts/{genotype}_read_counts.tsv", genotype=genotypes)
     conda:
         "../envs/stats.yaml"
+    resources:
+        mem_gb=12
     script:
         "../scripts/combine_read_counts.py"
 
@@ -43,6 +47,8 @@ rule plot_guide_counts:
         "results/read_counts/fold_change.tsv"
     conda:
         "../envs/stats.yaml"
+    resources:
+        mem_gb=8
     notebook:
         "../notebooks/guide_plots.py.ipynb"
 
