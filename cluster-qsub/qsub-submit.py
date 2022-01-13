@@ -21,7 +21,7 @@ cluster parameters:
     - `error`: Name of stderr logfile
     - `jobname`: Job name (with wildcards)
 
-Author: Joseph K Aicher
+Original Author: Joseph K Aicher
 """
 
 import sys  # for command-line arguments (get jobscript)
@@ -63,7 +63,7 @@ mem_gb = resources.get(
     )
 )
 mem_per_thread = round(mem_gb / threads, 2)  # per thread...
-# get the expected runtime in minutes - return 60 if not provided
+# get the expected runtime in minutes
 runtime = resources.get("runtime", None) or cluster.get("runtime", None)
 
 
