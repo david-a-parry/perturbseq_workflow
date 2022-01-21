@@ -12,7 +12,7 @@ available to run this workflow, ideally using [mamba](https://github.com/mamba-o
 
     mamba create --name snakemake  'snakemake-minimal>=5.24.1' 'pandas>=1.1'
 
-The necessary environements for the different stages of this workflw  will then
+The necessary environements for the different stages of this workflow  will then
 be created once you run the workflow (see below).
 
 ### Your Data
@@ -104,6 +104,11 @@ and `cluster_config.yaml`. The workflow can be run on an SGE cluster with a
 command like the following:
 
     $ snakemake --profile cluster-qsub --cluster-config cluster_config.yaml --use-conda --cores 8
+
+## Test Data
+
+Note that test data are provided in the `test` directory. Using the default `config/samples.tsv` and
+`config/units.tsv` will run this workflow on these data. The test files are provided to test execution of the workflow but due to the small size of these files some of the plots produced may look a little odd compared to real data.  
 
 ## Author
 
