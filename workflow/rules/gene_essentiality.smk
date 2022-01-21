@@ -4,7 +4,8 @@ def get_t0_sample(wildcards):
     if len(smpls) != 1:
         raise ValueError("Expected exactly 1 T0 sample for genotype " +
                          "{}, got {}".format(wildcards.genotype,
-                                             ", ".join(smpls) if smpls else 0))
+                                             ", ".join(smpls) if len(smpls)
+                                             else 0))
     return smpls[0]
 
 

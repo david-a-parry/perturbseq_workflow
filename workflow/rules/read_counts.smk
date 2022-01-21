@@ -6,8 +6,9 @@ def all_read_counts(wildcards):
 
 rule count_reads:
     input:
-        "alignments/{sample_name}-{unit_name}.bam",
+        "results/alignments/{sample_name}-{unit_name}.bam",
         guides_fasta,
+        "results/alignments/{sample_name}-{unit_name}.bam.bai",
         guides_fasta + '.fai'
     output:
         read_counts = "results/read_counts/per_bam/{sample_name}-{unit_name}_counts.csv.gz",

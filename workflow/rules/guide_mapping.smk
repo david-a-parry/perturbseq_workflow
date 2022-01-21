@@ -10,7 +10,8 @@ def get_original_fastq(wildcards):
 def get_trimmed_fastq(wildcards):
     """Get fastq files of given sample-unit."""
     fq = get_original_fastq(wildcards)
-    return os.path.join("trimmed_fastq",
+    return os.path.join("results",
+                        "trimmed_fastq",
                         "{}-{}-trimmed.fastq.gz".format(wildcards.sample_name,
                                                         wildcards.unit_name))
 
@@ -83,7 +84,7 @@ rule trim_fastq:
     input:
         get_original_fastq
     output:
-        "trimmed_fastq/{sample_name}-{unit_name}-trimmed.fastq.gz"
+        temp("results/trimmed_fastq/{sample_name}-{unit_name}-trimmed.fastq.gz")
     log:
         "logs/trim_fq/{sample_name}_{unit_name}.log"
     conda:
@@ -105,7 +106,8 @@ rule bowtie_map:
     params:
         ref_idx = bt_idx
     output:
-        "alignments/{sample_name}-{unit_name}.bam"
+        bam=temp("results/alignments/{sample_name}-{unit_name}.bam"),
+        bai=temp("results/alignments/{sample_name}-{unit_name}.bam.bai")
     log:
         "logs/bowtie_map/{sample_name}_{unit_name}.log"
     conda:
@@ -120,5 +122,5 @@ rule bowtie_map:
         "(bowtie -m 1 -v 2 -p {threads} {params.ref_idx} {input.fq} -S | "
         "samtools sort -O BAM "
         "-T tmp/{wildcards.sample_name}_{wildcards.unit_name} - )"
-        "> {output} 2> {log} && samtools index {output} 2>> {log}"
+        "> {output.bam} 2> {log} && samtools index {output.bam} 2>> {log}"
 
