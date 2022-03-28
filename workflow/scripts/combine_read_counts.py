@@ -1,5 +1,6 @@
 import os
 import pandas as pd
+import numpy as np
 
 # read in per-bam read counts
 df = pd.DataFrame()
@@ -19,7 +20,8 @@ count_df['fraction_reads'] = count_df.apply(
     axis=1)
 count_df.to_csv(snakemake.output[1], index=False)
 pivot = df.pivot_table(index=["Target", 'Gene'],
-                       columns='sample_name')['Coverage']
+                       columns='sample_name',
+                       aggfunc=np.sum)['Coverage']
 pivot.to_csv(snakemake.output[2], sep='\t')
 # get sample information, T0 timepoint and test sample IDs
 sample_df = pd.read_csv(snakemake.config['samples'], sep='\t')
