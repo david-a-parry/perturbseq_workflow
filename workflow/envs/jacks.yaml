@@ -1,4 +1,4 @@
 dependencies:
   - pip
   - pip:
-    - git+git://github.com/david-a-parry/JACKS.git
+    - git+https://github.com/david-a-parry/JACKS.git
